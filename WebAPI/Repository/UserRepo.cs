@@ -122,12 +122,13 @@ namespace Repository
                             prdata.File.CopyTo(stream);
                             stream.Close();
                         }
+                        p.ImageName = prdata.ImageName;
                     }
 
                     p.ProductName= prdata.ProductName;
                     p.Description= prdata.Description;
                     p.Price= prdata.Price;
-                    p.ImageName= prdata.ImageName;
+                   
                     this._dbcontext.Entry(p).State = EntityState.Modified;
                     this._dbcontext.SaveChanges();
                 }
