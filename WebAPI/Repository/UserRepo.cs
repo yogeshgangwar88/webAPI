@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WebAPI.DTOs;
 using System.IO;
 using WebAPI.Models;
+using AutoMapper;
 
 namespace Repository
 {
@@ -14,20 +15,23 @@ namespace Repository
     {
         private readonly AppDbContext _dbcontext;
         private readonly IWebHostEnvironment _webHostEnvironment; //use for upload image
-        public UserRepo(AppDbContext dbcontext, IWebHostEnvironment webHostEnvironment)
+        private readonly IMapper _mapper;
+        public UserRepo(AppDbContext dbcontext, IWebHostEnvironment webHostEnvironment, IMapper mapper)
         {
             this._dbcontext = dbcontext;
             this._webHostEnvironment = webHostEnvironment;
+            this._mapper = mapper;
         }
 
-        public Product AddProduct(Product product)
+        public Product AddProduct(productDto product)
         {
             try
             {
-                this._dbcontext.Products.Add(product);
+                var prdata=_mapper.Map<Product>(product);
+                this._dbcontext.Products.Add(prdata);
                 this._dbcontext.SaveChanges();
                
-                if (product.File?.Length>0)
+                if (prdata.File?.Length>0)
                 {
                    // var validimg = false;
                     var rootpath=this._webHostEnvironment.ContentRootPath;
@@ -37,25 +41,25 @@ namespace Repository
                         Directory.CreateDirectory(folderpath);
                     }
                     //check extentension
-                    var ext=Path.GetExtension(product.File.FileName);
+                    var ext=Path.GetExtension(prdata.File.FileName);
                     var valid_ext = new string[] { ".jpg", ".jpeg", ".png" };
                     if (valid_ext.Contains(ext))
                     {
                         string filename = product.Id.ToString() + "_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ext;
-                        product.ImageName = filename;
+                        prdata.ImageName = filename;
                         var filewithpath = Path.Combine(folderpath, filename);
                         var stream = new FileStream(filewithpath, FileMode.Create);
-                        product.File.CopyTo(stream);
+                        prdata.File.CopyTo(stream);
                         stream.Close();
                     }
                    
-                    this._dbcontext.Entry(product).State = EntityState.Modified;
+                    this._dbcontext.Entry(prdata).State = EntityState.Modified;
                     this._dbcontext.SaveChanges();
                 }
 
 
                 
-                return product;
+                return prdata;
             }
             catch (Exception)
             {
@@ -83,20 +87,47 @@ namespace Repository
             }
         }
 
-        public Product EditProduct(Product product)
+        public Product EditProduct(productDto product)
         {
             try
             {
-                var p = this._dbcontext.Products.Find(product.Id);
+                var prdata = _mapper.Map<Product>(product);
+                var p = this._dbcontext.Products.Find(prdata.Id);
                 if (p == null)
                 {
                     p = new Product();
                 }
                 else
                 {
-                    p.ProductName=product.ProductName;
-                    p.Description=product.Description;
-                    p.Price=product.Price;
+                    if (prdata.File?.Length > 0)
+                    {
+                        //delete existing file
+                        var rootpath = this._webHostEnvironment.ContentRootPath;
+                        var folderpath = Path.Combine(rootpath, "UserImages");
+                        if (!string.IsNullOrEmpty(p.ImageName))
+                        {
+                            string existingfile = Path.Combine(folderpath, p.ImageName);
+                            System.IO.File.Delete(existingfile);
+                        }
+                       
+                        //insert new file
+                        var ext = Path.GetExtension(prdata.File.FileName);
+                        var valid_ext = new string[] { ".jpg", ".jpeg", ".png" };
+                        if (valid_ext.Contains(ext))
+                        {
+                            string filename = product.Id.ToString() + "_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ext;
+                            prdata.ImageName = filename;
+                            var filewithpath = Path.Combine(folderpath, filename);
+                            var stream = new FileStream(filewithpath, FileMode.Create);
+                            prdata.File.CopyTo(stream);
+                            stream.Close();
+                        }
+                    }
+
+                    p.ProductName= prdata.ProductName;
+                    p.Description= prdata.Description;
+                    p.Price= prdata.Price;
+                    p.ImageName= prdata.ImageName;
                     this._dbcontext.Entry(p).State = EntityState.Modified;
                     this._dbcontext.SaveChanges();
                 }

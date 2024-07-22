@@ -54,17 +54,17 @@ namespace WebAPI.Controllers
         [HttpPost("addproduct")]
         public Product Addproduct([FromForm] productDto Product)
         {
-            //var data = this._automapper.Map<User>(user);
-            var dt = this._automapper.Map<Product>(Product);
-            return this._userRepo.AddProduct(dt);
+            
+            return this._userRepo.AddProduct(Product);
         }
 
         // PUT api/<UserController>/5
         [HttpPut]
         [Route("EditProduct/{id}")]
-        public Product EditProduct(int id, [FromBody] Product Product)
+        public Product EditProduct(int id, [FromForm] productDto Product)
         {
-          return  this._userRepo.EditProduct(Product);
+            
+            return  this._userRepo.EditProduct(Product);
         }
 
         // DELETE api/<UserController>/5

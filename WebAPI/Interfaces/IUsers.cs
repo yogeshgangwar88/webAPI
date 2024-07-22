@@ -10,11 +10,11 @@ namespace Interfaces
         public User Loginuser(UsersDto userx);
         public void Logout();
         public User Register(User user);
-        public Product AddProduct(Product product);
+        public Product AddProduct(productDto product);
         public CustomResponse<Product> GetAllProduct();
         public Product GetProductbyid(int id);
 
-        public Product EditProduct(Product product);
+        public Product EditProduct(productDto product);
         public Product DeleteProduct(Product product);
         
     }
