@@ -1,9 +1,11 @@
 
-using  Dbcontext;
-using  Interfaces;
-using  Repository;
+using Dbcontext;
+using Interfaces;
+using Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Builder;
+using WebAPI.Middleware;
 
 namespace WebAPI
 {
@@ -15,7 +17,7 @@ namespace WebAPI
 
             // Add services to the container.
             builder.Services.AddDbContext<AppDbContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("defaultconnection")));
-            builder.Services.AddMvc().AddNewtonsoftJson(options =>
+            builder.Services.AddMvc(services => services.EnableEndpointRouting = false).AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
@@ -27,37 +29,46 @@ namespace WebAPI
                     builder =>
                     {
                         builder.WithOrigins("http://localhost:4200") // Add your client-side application's origin here
-                               .WithMethods("GET","POST","PUT","DELETE")
+                               .WithMethods("GET", "POST", "PUT", "DELETE")
                                .AllowAnyHeader();
                     });
             });
-
+            
             builder.Services.AddControllers();
-          
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-           
-            var app = builder.Build();
             
+            builder.Services.AddScoped<Custommiddleware>();
+            
+            var app = builder.Build();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            else
+                app.UseExceptionHandler();
+            app.UseHsts();
             app.UseHttpsRedirection();
-            app.UseCors("AllowSpecificOrigin");
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "UserImages")),
                 RequestPath = "/staticImages"
 
             });
+            app.UseRouting();
+            app.UseCors("AllowSpecificOrigin");
+            app.UseAuthentication();
             app.UseAuthorization();
-
-
-            app.MapControllers();
+            ///custom middleware ///
+            app.MycustomMiddleware();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.Run();
         }
