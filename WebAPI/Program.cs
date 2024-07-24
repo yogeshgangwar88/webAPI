@@ -44,15 +44,21 @@ namespace WebAPI
             
             var app = builder.Build();
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-            else
-                app.UseExceptionHandler();
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            //if (app.Environment.IsDevelopment())
+            //{
+            //    app.UseSwagger();
+            //    app.UseSwaggerUI();
+            //}
+            //else
+            //    app.UseExceptionHandler();
             app.UseHsts();
             app.UseHttpsRedirection();
+            if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "UserImages")))
+            {
+                Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "UserImages"));
+            }
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "UserImages")),
@@ -67,7 +73,9 @@ namespace WebAPI
             app.MycustomMiddleware();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllerRoute(
+                     name: "default",
+                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
 
             app.Run();

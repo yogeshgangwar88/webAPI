@@ -6,3 +6,5 @@
 /WebAPI/bin/Debug/net8.0
 /WebAPI/.vs
 /.gitignore
+/WebAPI/bin/Release/net8.0
+/WebAPI/Properties/PublishProfiles

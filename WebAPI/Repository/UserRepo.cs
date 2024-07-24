@@ -45,7 +45,7 @@ namespace Repository
                     var valid_ext = new string[] { ".jpg", ".jpeg", ".png" };
                     if (valid_ext.Contains(ext))
                     {
-                        string filename = product.Id.ToString() + "_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ext;
+                        string filename = prdata.Id.ToString() + "_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ext;
                         prdata.ImageName = filename;
                         var filewithpath = Path.Combine(folderpath, filename);
                         var stream = new FileStream(filewithpath, FileMode.Create);
@@ -104,7 +104,7 @@ namespace Repository
                         //delete existing file
                         var rootpath = this._webHostEnvironment.ContentRootPath;
                         var folderpath = Path.Combine(rootpath, "UserImages");
-                        if (!string.IsNullOrEmpty(p.ImageName))
+                        if (Directory.Exists(folderpath) && !string.IsNullOrEmpty(p.ImageName))
                         {
                             string existingfile = Path.Combine(folderpath, p.ImageName);
                             System.IO.File.Delete(existingfile);
